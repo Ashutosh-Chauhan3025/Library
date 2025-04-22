@@ -21,7 +21,7 @@ pipeline {
                 script {
                     sh 'docker stop frontend-container || true'
                     sh 'docker rm frontend-container || true'
-                    sh 'docker run -d -p 8080:80 --name frontend-container my-frontend-app'
+                    sh 'docker run -d -p 8081:80 --name frontend-container my-frontend-app'
                 }
             }
         }
