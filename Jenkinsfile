@@ -2,6 +2,57 @@ pipeline {
     agent any
 
     environment {
+        DOCKERHUB_CREDENTIALS = 'devops'
+        IMAGE_NAME = 'ashutosh2517/my-frontend-app'
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git 'https://github.com/Ashutosh-Chauhan3025/Library.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${IMAGE_NAME}")
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    sh 'docker stop frontend-container || true'
+                    sh 'docker rm frontend-container || true'
+                    sh "docker run -d -p 8081:80 --name frontend-container ${IMAGE_NAME}"
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: DOCKERHUB_CREDENTIALS, url: '']) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker stop frontend-container || true'
+            sh 'docker rm frontend-container || true'
+        }
+    }
+}
+pipeline {
+    agent any
+
+    environment {
         DOCKERHUB_CREDENTIALS = 'devops'  // Your Docker Hub credentials ID in Jenkins
         IMAGE_NAME = 'ashutosh2517/my-frontend-app'  // Docker Hub repo name
     }
