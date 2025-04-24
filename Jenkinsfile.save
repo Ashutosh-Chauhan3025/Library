@@ -1,8 +1,37 @@
 pipeline {
     agent any
 
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git 'https://github.com/Ashutosh-Chauhan3025/Library.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build('my-frontend-app')
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    sh 'docker stop frontend-container || true'
+                    sh 'docker rm frontend-container || true'
+                    sh 'docker run -d -p 8081:80 --name frontend-container my-frontend-app'
+                }
+            }
+        }
+    }
+}
+pipeline {
+    agent any
+
     environment {
-        DOCKERHUB_CREDENTIALS = 'devops'  // Your Docker Hub credentials ID in Jenkins
+        DOCKERHUB_CREDENTIALS = 'dockerhub-creds'  // Your Docker Hub credentials ID in Jenkins
         IMAGE_NAME = 'ashutosh2517/my-frontend-app'  // Docker Hub repo name
     }
 
@@ -54,35 +83,6 @@ pipeline {
             // Cleanup - stop and remove container after every run
             sh 'docker stop frontend-container || true'
             sh 'docker rm frontend-container || true'
-        }
-    }
-}
-pipeline {
-    agent any
-
-    stages {
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/Ashutosh-Chauhan3025/Library.git'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    docker.build('my-frontend-app')
-                }
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    sh 'docker stop frontend-container || true'
-                    sh 'docker rm frontend-container || true'
-                    sh 'docker run -d -p 8081:80 --name frontend-container my-frontend-app'
-                }
-            }
         }
     }
 }
