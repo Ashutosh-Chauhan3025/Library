@@ -2,8 +2,14 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = 'devops'
-        IMAGE_NAME = 'ashutosh2517/my-frontend-app'
+        DOCKERHUB_CREDENTIALS = 'devops'               // Your Jenkins credential ID for DockerHub
+        IMAGE_NAME = 'ashutosh2517/my-frontend-app'     // Full image name
+        CONTAINER_NAME = 'frontend-container'           // Container name
+    }
+
+    triggers {
+        // GitHub webhook trigger
+        githubPush()
     }
 
     stages {
@@ -24,65 +30,12 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh 'docker stop frontend-container || true'
-                    sh 'docker rm frontend-container || true'
-                    sh "docker run -d -p 8081:80 --name frontend-container ${IMAGE_NAME}"
-                }
-            }
-        }
-
-        stage('Push Docker Image to Docker Hub') {
-            steps {
-                script {
-                    withDockerRegistry([credentialsId: DOCKERHUB_CREDENTIALS, url: '']) {
-                        dockerImage.push()
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            sh 'docker stop frontend-container || true'
-            sh 'docker rm frontend-container || true'
-        }
-    }
-}
-pipeline {
-    agent any
-
-    environment {
-        DOCKERHUB_CREDENTIALS = 'devops'  // Your Docker Hub credentials ID in Jenkins
-        IMAGE_NAME = 'ashutosh2517/my-frontend-app'  // Docker Hub repo name
-    }
-
-    stages {
-        stage('Clone Repo') {
-            steps {
-                // Cloning the Git repository
-                git 'https://github.com/Ashutosh-Chauhan3025/Library.git'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    // Building the Docker image
-                    dockerImage = docker.build(IMAGE_NAME)
-                }
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    // Stopping and removing any running container (if exists)
-                    sh 'docker stop frontend-container || true'
-                    sh 'docker rm frontend-container || true'
+                    // Stop and remove container if already running
+                    sh "docker stop ${CONTAINER_NAME} || true"
+                    sh "docker rm ${CONTAINER_NAME} || true"
                     
-                    // Running the Docker container
-                    sh 'docker run -d -p 8081:80 --name frontend-container my-frontend-app'
+                    // Run the new container
+                    sh "docker run -d -p 8081:80 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
                 }
             }
         }
@@ -90,9 +43,7 @@ pipeline {
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
-                    // Log in to Docker Hub using credentials from Jenkins
                     withDockerRegistry([credentialsId: DOCKERHUB_CREDENTIALS, url: '']) {
-                        // Pushing the image to Docker Hub
                         dockerImage.push()
                     }
                 }
@@ -102,38 +53,9 @@ pipeline {
 
     post {
         always {
-            // Cleanup - stop and remove container after every run
-            sh 'docker stop frontend-container || true'
-            sh 'docker rm frontend-container || true'
-        }
-    }
-}
-pipeline {
-    agent any
-
-    stages {
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/Ashutosh-Chauhan3025/Library.git'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    docker.build('my-frontend-app')
-                }
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    sh 'docker stop frontend-container || true'
-                    sh 'docker rm frontend-container || true'
-                    sh 'docker run -d -p 8081:80 --name frontend-container my-frontend-app'
-                }
-            }
+            // Cleanup even if build fails
+            sh "docker stop ${CONTAINER_NAME} || true"
+            sh "docker rm ${CONTAINER_NAME} || true"
         }
     }
 }
