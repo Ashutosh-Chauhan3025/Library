@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = 'devops'               // Your Jenkins credential ID for DockerHub
-        IMAGE_NAME = 'ashutosh2517/my-frontend-app'     // Full image name
-        CONTAINER_NAME = 'my-frontend-app'           // Container name
+        DOCKERHUB_CREDENTIALS = 'devops'
+        IMAGE_NAME = 'ashutosh2517/my-frontend-app'
+        CONTAINER_NAME = 'my-frontend-app'
     }
 
     triggers {
@@ -12,11 +12,11 @@ pipeline {
     }
 
     stages {
-
         stage('Build Docker Image') {
             steps {
                 script {
-                   def dockerImage = docker.build("${IMAGE_NAME}")
+                    // Global variable assignment
+                    dockerImage = docker.build("${IMAGE_NAME}")
                 }
             }
         }
