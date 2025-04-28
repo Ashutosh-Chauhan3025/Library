@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = 'devops'               // Your Jenkins credential ID for DockerHub
         IMAGE_NAME = 'ashutosh2517/my-frontend-app'     // Full image name
-        CONTAINER_NAME = 'frontend-container'           // Container name
+        CONTAINER_NAME = 'my-frontend-app'           // Container name
     }
 
     triggers {
