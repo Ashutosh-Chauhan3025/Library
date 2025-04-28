@@ -8,21 +8,15 @@ pipeline {
     }
 
     triggers {
-        // GitHub webhook trigger
         githubPush()
     }
 
     stages {
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/Ashutosh-Chauhan3025/Library.git'
-            }
-        }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                   def  dockerImage = docker.build("${IMAGE_NAME}")
+                   def dockerImage = docker.build("${IMAGE_NAME}")
                 }
             }
         }
@@ -30,11 +24,8 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    // Stop and remove container if already running
                     sh "docker stop ${CONTAINER_NAME} || true"
                     sh "docker rm ${CONTAINER_NAME} || true"
-                    
-                    // Run the new container
                     sh "docker run -d -p 8081:80 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
                 }
             }
@@ -53,9 +44,9 @@ pipeline {
 
     post {
         always {
-            // Cleanup even if build fails
             sh "docker stop ${CONTAINER_NAME} || true"
             sh "docker rm ${CONTAINER_NAME} || true"
         }
     }
 }
+
